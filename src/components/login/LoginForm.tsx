@@ -1,7 +1,8 @@
 import axios from "axios";
 import { SyntheticEvent, useState } from "react";
-import GoogleLogin, { GoogleLoginResponse } from "react-google-login";
 import { Link } from "react-router-dom";
+import { CredentialResponse, GoogleOAuthProvider } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
 
 export const LoginForm = (props: {loginData: Function, success: Function}) => {
   const [email, setEmail] = useState('');
@@ -21,10 +22,12 @@ export const LoginForm = (props: {loginData: Function, success: Function}) => {
 		props.loginData(data)
 	};
 
-  const onSuccess = async (googleUser: any) => {
+  const onSuccess = async (googleUser: CredentialResponse) => {
+
+		console.log(googleUser)
 
     const {status, data} = await axios.post('google-auth', {
-      token: googleUser.tokenId
+      token: googleUser.credential
     }, {withCredentials: true})
 
     axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
@@ -34,12 +37,12 @@ export const LoginForm = (props: {loginData: Function, success: Function}) => {
     }
   }
 
-  const onFailure = (e: any) => {
-    alert(e.error)
+  const onFailure = () => {
+    console.log('Login Failed')
   }
 
   return (
-    <>
+    <GoogleOAuthProvider clientId="204431285224-irrli1v6vi2fju8fm5nbji380pqs29l1.apps.googleusercontent.com">
     <form onSubmit={submit}>
 				<h1 className="h3 mb-3 fw-normal">Please sign in</h1>
 
@@ -72,13 +75,17 @@ export const LoginForm = (props: {loginData: Function, success: Function}) => {
 					Sign in
 				</button>
 			</form>
-      <GoogleLogin clientId='204431285224-ti2j9a86eupqhv8gcq5qbta9aaj3r82d.apps.googleusercontent.com' 
+			<GoogleLogin
+				onSuccess={onSuccess}
+				onError={onFailure}
+			/>;
+      {/* <GoogleLogin clientId='204431285224-irrli1v6vi2fju8fm5nbji380pqs29l1.apps.googleusercontent.com' 
       buttonText="Login with Google"
       onSuccess={onSuccess}
       onFailure={onFailure}
       cookiePolicy="single_host_origin"
-      className="mt-3 w-100"/>
-      </>
+      className="mt-3 w-100"/> */}
+      </GoogleOAuthProvider>
   )
 
 }
